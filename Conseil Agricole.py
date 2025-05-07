@@ -2,3 +2,4 @@
 import streamlit as st
 
 st.title("👋 Bienvenue!")
+st.write("ok")
