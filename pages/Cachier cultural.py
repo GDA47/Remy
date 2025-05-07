@@ -37,7 +37,7 @@ def traiter_donnees(df):
 
     # Filtrer les données non prévisionnelles
     if col_prev in df.columns:
-        df = df[df[col_prev].str.strip().str.lower() != "non"]
+        df = df[df[col_prev].str.strip().str.lower() != "oui"]
 
     # Traitement des dates
     if col_date in df.columns:
@@ -166,10 +166,8 @@ def get_table_operations_agricoles_codifie(df):
 
     return df_result
 
-def get_table_irrigation(df):
-    import pandas as pd
-    import streamlit as st
 
+def get_table_irrigation(df):
     # Colonnes nécessaires
     col_type = "Types d'interventions.Nom"
     col_date = "Interventions des parcelles culturales.Date début"
@@ -187,44 +185,36 @@ def get_table_irrigation(df):
         df_irrigation = df_irrigation.sort_values(by=col_date)
 
     # Colonnes à conserver
-    columns_needed = [
+    columns_to_keep = [
         "Interventions des parcelles culturales.Date début",
         "Intrants des parcelles culturales.Dose",
+        "Interventions des parcelles culturales.Motivation",
         "Parcelles culturales.Nom"
     ]
-    missing_cols = [col for col in columns_needed if col not in df_irrigation.columns]
+
+    # Vérification des colonnes
+    missing_cols = [col for col in columns_to_keep if col not in df_irrigation.columns]
     if missing_cols:
         st.error(f"❌ Colonnes manquantes dans les données : {', '.join(missing_cols)}")
         return None
 
-    # Préparation du dataframe
-    df_work = df_irrigation[columns_needed].copy()
-    df_work.rename(columns={
+    # Construction du tableau final
+    df_result = df_irrigation[columns_to_keep].copy()
+    df_result.insert(1, "Pluie", "")
+
+    # Renommage des colonnes
+    rename_dict = {
         "Interventions des parcelles culturales.Date début": "Date",
+        "Pluie": "Pluie (mm)",
         "Intrants des parcelles culturales.Dose": "Dose",
+        "Interventions des parcelles culturales.Motivation": "Motif",
         "Parcelles culturales.Nom": "Parcelle"
-    }, inplace=True)
-
-    # Ajout de colonne pluie vide
-    df_work["Pluie (mm)"] = ""
-
-    # Création des colonnes de parcelles avec "X"
-    df_work["X"] = "X"
-    df_pivot = df_work.pivot_table(
-        index=["Date", "Dose", "Pluie (mm)"],
-        columns="Parcelle",
-        values="X",
-        aggfunc="first",
-        fill_value=""
-    ).reset_index()
-
-    # Réorganisation des colonnes (Date, Dose, Pluie, then Parcelles)
-    columns_order = ["Date", "Dose", "Pluie (mm)"] + sorted(col for col in df_pivot.columns if col not in ["Date", "Dose", "Pluie (mm)"])
-    df_result = df_pivot[columns_order]
+    }
+    df_result.rename(columns=rename_dict, inplace=True)
 
     # Formatage de la date
     if "Date" in df_result.columns:
-        df_result["Date"] = pd.to_datetime(df_result["Date"]).dt.strftime('%d/%m/%Y')
+        df_result["Date"] = df_result["Date"].dt.strftime('%d/%m/%Y')
 
     return df_result
 
