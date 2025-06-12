@@ -11,7 +11,7 @@ from textwrap import wrap
 import os
 
 # --- Load static assets ---
-LOGO_PATH = "logo1.png"
+LOGO_PATH = "logo1.PNG"
 SIGNATURE_PATH = "signaturer.png"
 
 def charger_image(path):
