@@ -92,6 +92,20 @@ A ce titre :
 # --- Streamlit UI ---
 st.title("📄 Générateur d'attestations PDF en lot")
 
+with st.expander("ℹ️ Instructions pour le fichier Excel requis"):
+    st.markdown("""
+    Le fichier Excel doit contenir **une ligne par attestation** avec les colonnes suivantes :
+
+    | Nom                 | Date        | Commune             | CodePostal |
+    |----------------------|-------------|----------------------|------------|
+    | Mme Alain LOUBIERES  | 27/01/2025  | CLERMONT-DESSOUS     | 47130      |
+
+    **⚠️ Astuces :**
+    - Le format de la date doit être `JJ/MM/AAAA`
+    - La colonne `CodePostal` doit être un nombre ou une chaîne à 5 chiffres
+    """)
+
+
 uploaded_excel = st.file_uploader("📁 Importer un fichier Excel", type=["xlsx"])
 
 if uploaded_excel:
@@ -119,3 +133,19 @@ if uploaded_excel:
 
     except Exception as e:
         st.error(f"Erreur lors du traitement : {e}")
+st.markdown("---")
+st.subheader("📝 Générer une attestation manuellement")
+
+with st.form("manual_form"):
+    nom_manual = st.text_input("Nom complet")
+    date_manual = st.date_input("Date de l'attestation", datetime.date.today())
+    commune_manual = st.text_input("Commune")
+    cp_manual = st.text_input("Code postal")
+
+    submitted = st.form_submit_button("📄 Générer l'attestation")
+
+    if submitted:
+        date_str_manual = date_manual.strftime("%d/%m/%Y")
+        pdf_buffer = generer_pdf(nom_manual, date_str_manual, commune_manual, cp_manual, logo_image, signature_image)
+        st.success("✅ Attestation générée avec succès")
+        st.download_button("📥 Télécharger l'attestation", data=pdf_buffer, file_name=f"attestation_{nom_manual.replace(' ', '_')}.pdf", mime="application/pdf")
