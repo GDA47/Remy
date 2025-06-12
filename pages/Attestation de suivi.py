@@ -39,8 +39,8 @@ def generer_pdf(nom, date_str, commune, code_postal, logo, signature):
 
     # Logo full width
     if logo:
-        c.drawImage(logo, x=marge_gauche, y=hauteur - 6 * cm,
-                    width=largeur - 4 * cm, preserveAspectRatio=True, mask='auto')
+        c.drawImage(logo, x=marge_gauche, y=hauteur - 8 * cm,
+                    width=largeur - 2 * cm, preserveAspectRatio=True, mask='auto')
 
     # Date
     c.setFont("Helvetica", 12)
