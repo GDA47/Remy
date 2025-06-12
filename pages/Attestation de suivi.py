@@ -12,7 +12,7 @@ import os
 
 # --- Load static assets ---
 LOGO_PATH = "logo1.PNG"
-SIGNATURE_PATH = "signaturer.png"
+SIGNATURE_PATH = "signaturer.PNG"
 
 def charger_image(path):
     if os.path.exists(path):
@@ -39,8 +39,8 @@ def generer_pdf(nom, date_str, commune, code_postal, logo, signature):
 
     # ✅ Logo lower so it's fully visible (moved down)
     if logo:
-        c.drawImage(logo, x=marge_gauche, y=hauteur - 6 * cm,
-                    width=largeur - 5 * cm, preserveAspectRatio=True, mask='auto')
+        c.drawImage(logo, x=marge_gauche, y=hauteur - 7 * cm,
+                    width=largeur - 2 * cm, preserveAspectRatio=True, mask='auto')
 
     # ✅ Date slightly below logo
     c.setFont("Helvetica", 12)
