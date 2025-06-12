@@ -95,7 +95,7 @@ with st.expander("ℹ️ Instructions pour le fichier Excel requis"):
 
     | Nom                 | Date        | Commune             | CodePostal |
     |----------------------|-------------|----------------------|------------|
-    | Mme Alain LOUBIERES  | 27/01/2025  | CLERMONT-DESSOUS     | 47130      |
+    | Nom                  | 27/01/2025  | Agen                 | 47000      |
 
     **⚠️ Astuces :**
     - Le format de la date doit être `JJ/MM/AAAA`
