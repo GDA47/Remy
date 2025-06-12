@@ -22,47 +22,44 @@ def charger_image(path):
 logo_image = charger_image(LOGO_PATH)
 signature_image = charger_image(SIGNATURE_PATH)
 
-# --- Date formatting ---
+# --- Format date in French style
 def formater_date_lettres(date_str):
     date_obj = datetime.datetime.strptime(date_str, "%d/%m/%Y")
     mois = ["janvier", "février", "mars", "avril", "mai", "juin",
             "juillet", "août", "septembre", "octobre", "novembre", "décembre"]
     return f"{date_obj.day} {mois[date_obj.month - 1]} {date_obj.year}"
 
+# --- Generate PDF
 def generer_pdf(nom, date_str, commune, code_postal, logo, signature):
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     largeur, hauteur = A4
 
     marge_gauche = 2 * cm
-    marge_droite = largeur - 5 * cm
 
-    # ✅ Logo lower so it's fully visible (moved down)
+    # Logo full width
     if logo:
-        c.drawImage(logo, x=marge_gauche, y=hauteur - 7 * cm,
-                    width=largeur - 2 * cm, preserveAspectRatio=True, mask='auto')
+        c.drawImage(logo, x=marge_gauche, y=hauteur - 6 * cm,
+                    width=largeur - 4 * cm, preserveAspectRatio=True, mask='auto')
 
-    # ✅ Date slightly below logo
+    # Date
     c.setFont("Helvetica", 12)
-    c.setFillColorRGB(0, 0, 0)  # black text
+    c.setFillColorRGB(0, 0, 0)
     c.drawString(marge_gauche, hauteur - 6.2 * cm, f"Agen, le {formater_date_lettres(date_str)}")
 
-    # ✅ Title box below date
+    # Title box
     box_top = hauteur - 7.5 * cm
     box_bottom = box_top - 2.4 * cm
-    c.setStrokeColorRGB(0.3, 0.6, 0.3)  # green border
-    c.setFillColorRGB(0.85, 0.95, 0.85)  # light green fill
+    c.setStrokeColorRGB(0.3, 0.6, 0.3)
+    c.setFillColorRGB(0.85, 0.95, 0.85)
     c.rect(marge_gauche, box_bottom, largeur - 4 * cm, 2.4 * cm, fill=1, stroke=1)
 
-    # ✅ Title text (black, bold, two lines)
     c.setFont("Helvetica-Bold", 14)
     c.setFillColorRGB(0, 0, 0)
-    c.drawCentredString(largeur / 2, box_top - 0.9 * cm,
-        "Attestation de Suivi Technique")
-    c.drawCentredString(largeur / 2, box_top - 1.7 * cm,
-        "Pomme Production Fruitière Intégrée")
+    c.drawCentredString(largeur / 2, box_top - 0.9 * cm, "Attestation de Suivi Technique")
+    c.drawCentredString(largeur / 2, box_top - 1.7 * cm, "Pomme Production Fruitière Intégrée")
 
-    # ✅ Body text using full width with equal margins
+    # Body
     c.setFont("Helvetica", 11)
     body = f"""J’atteste que {nom} à {commune.upper()} ({code_postal[:2]}) a souscrit à un suivi technique en Arboriculture auprès de notre chambre d’agriculture. 
 A ce titre :
@@ -80,7 +77,7 @@ A ce titre :
             y -= 0.55 * cm
         y -= 0.15 * cm
 
-    # ✅ Signature image full width at bottom
+    # Signature
     if signature:
         c.drawImage(signature, x=marge_gauche, y=1.5 * cm,
                     width=largeur - 4 * cm, preserveAspectRatio=True, mask='auto')
@@ -89,8 +86,8 @@ A ce titre :
     buffer.seek(0)
     return buffer
 
-# --- Streamlit UI ---
-st.title("📄 Générateur d'attestations PDF en lot")
+# --- UI ---
+st.title("📄 Générateur d'attestations PDF")
 
 with st.expander("ℹ️ Instructions pour le fichier Excel requis"):
     st.markdown("""
@@ -104,7 +101,6 @@ with st.expander("ℹ️ Instructions pour le fichier Excel requis"):
     - Le format de la date doit être `JJ/MM/AAAA`
     - La colonne `CodePostal` doit être un nombre ou une chaîne à 5 chiffres
     """)
-
 
 uploaded_excel = st.file_uploader("📁 Importer un fichier Excel", type=["xlsx"])
 
@@ -132,7 +128,9 @@ if uploaded_excel:
             st.download_button("📥 Télécharger toutes les attestations (.zip)", data=zip_buffer, file_name="attestations.zip", mime="application/zip")
 
     except Exception as e:
-        st.error(f"Erreur lors du traitement : {e}")
+        st.error(f"❌ Erreur lors du traitement du fichier : {e}")
+
+# --- Manual Entry ---
 st.markdown("---")
 st.subheader("📝 Générer une attestation manuellement")
 
@@ -144,8 +142,19 @@ with st.form("manual_form"):
 
     submitted = st.form_submit_button("📄 Générer l'attestation")
 
-    if submitted:
-        date_str_manual = date_manual.strftime("%d/%m/%Y")
-        pdf_buffer = generer_pdf(nom_manual, date_str_manual, commune_manual, cp_manual, logo_image, signature_image)
-        st.success("✅ Attestation générée avec succès")
-        st.download_button("📥 Télécharger l'attestation", data=pdf_buffer, file_name=f"attestation_{nom_manual.replace(' ', '_')}.pdf", mime="application/pdf")
+if submitted:
+    if not (nom_manual and commune_manual and cp_manual):
+        st.warning("Veuillez remplir tous les champs pour générer l’attestation.")
+    else:
+        try:
+            date_str_manual = date_manual.strftime("%d/%m/%Y")
+            pdf_buffer = generer_pdf(nom_manual, date_str_manual, commune_manual, cp_manual, logo_image, signature_image)
+            st.success("✅ Attestation générée avec succès")
+            st.download_button(
+                label="📥 Télécharger l'attestation",
+                data=pdf_buffer,
+                file_name=f"attestation_{nom_manual.replace(' ', '_')}.pdf",
+                mime="application/pdf"
+            )
+        except Exception as e:
+            st.error(f"❌ Une erreur s’est produite : {e}")
